@@ -1,1 +1,3 @@
 rootProject.name = "kotlinspringbootboston"
+
+// His version of settings.gradle.kts has way more stuff...
