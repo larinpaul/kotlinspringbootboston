@@ -5,3 +5,4 @@ data class Bank(
     val trust: Double,
     val transactionFee: Int
 )
+
