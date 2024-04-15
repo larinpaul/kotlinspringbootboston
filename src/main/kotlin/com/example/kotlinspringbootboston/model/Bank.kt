@@ -2,20 +2,16 @@ package com.example.kotlinspringbootboston.model
 
 class Bank {
 
-    private var accountNumber: String
-    private var trust: Double
-    private var transactionFee: Int
+    private val accountNumber: String
+        get() = field // This is not necessary, since if you have a val, Kotlin will generate a default getter for you
+//        set(value) { field = value }
+    private val trust: Double
+    private val transactionFee: Int
 
     constructor(accountNumber: String, trust: Double, transactionFee: Int) {
         this.accountNumber = accountNumber
         this.trust = trust
         this.transactionFee = transactionFee
-    }
-
-    fun getAccountNumber(): String = accountNumber
-
-    fun setAccountNumber(accountNumber: String) {
-        this.accountNumber = accountNumber
     }
 
     override fun equals(other: Any?): Boolean {
