@@ -1,5 +1,6 @@
 package com.example.kotlinspringbootboston.controller
 
+import com.example.kotlinspringbootboston.model.Bank
 import com.example.kotlinspringbootboston.service.BankService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -10,6 +11,6 @@ import org.springframework.web.bind.annotation.RestController
 class BankController(private val service: BankService) {
 
     @GetMapping
-    fun getBanks(): String = "works"
+    fun getBanks(): Collection<Bank> = service.getBanks()
 
 }
