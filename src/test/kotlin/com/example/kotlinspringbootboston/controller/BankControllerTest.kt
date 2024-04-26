@@ -11,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
 import org.springframework.test.web.client.match.MockRestRequestMatchers.content
 import org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.post
-import org.springframework.test.web.servlet.put
+import org.springframework.test.web.servlet.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.servlet.function.RequestPredicates.contentType
 import javax.management.Query.value
@@ -98,11 +96,12 @@ internal class BankControllerTest @Autowired constructor (
                 .andDo { print() }
                 .andExpect {
                     status { isCreated() }
-                    content { contentType{MediaType.APPLICATION_JSON} }
-                    jsonPath("$.accountNumber") { value("acc123") }
-                    jsonPath("$.trust") { value("acc123") }
-                    jsonPath("$.transactionFee") { value("acc123") }
-                }
+                    content {
+                        contentType(MediaType.APPLICATION_JSON)
+                        json(objectMapper.writeValueAsString(newBank))
+                    }
+            .mockMvc.get("$baseUrl/${newBank.accountNumber}")
+                 .andExpect { content { json(objectMapper.writeValueAsString(newBank)) } }
         }
 
         @Test
@@ -135,7 +134,7 @@ internal class BankControllerTest @Autowired constructor (
             val updatedBank = Bank("1234", 1.0, 1)
 
             // when
-            val performPathRequest = mockMvc.put(baseUrl) {
+            val performPathRequest = mockMvc.patch(baseUrl) {
                 contentType = MediaType.APPLICATION_JSON
                 content = objectMapper.writeValueAsString(updatedBank)
             }
@@ -145,8 +144,14 @@ internal class BankControllerTest @Autowired constructor (
                 .andDo { print() }
                 .andExpect {
                     status { isOK() }
+                    content {
+                        contentType(MediaType.APPLICATION_JSON)
+                        json(objectMapper.writeValueAsString(updatedBank))
+                    }
                 }
 
+            mockMvc.get("$baseUrl/${updatedBank.accountNumber}")
+                .andExpect { content { json(objectMapper.writeValueAsString(updatedBank)) } }
         }
 
     }
