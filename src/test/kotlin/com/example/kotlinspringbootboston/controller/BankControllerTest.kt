@@ -16,6 +16,7 @@ import org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPat
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.servlet.function.RequestPredicates.contentType
 import javax.management.Query.value
@@ -120,6 +121,32 @@ internal class BankControllerTest @Autowired constructor (
             performPost
                 .andDo { print() }
                 .andExpect { status { isBadRequest() } }
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH/api/banks")
+    @TestInstance(Lifecycle.PER_CLASS)
+    inner class PAtchExistingBank {
+
+        @Test
+        fun `should update an existing bank` () {
+            // given
+            val updatedBank = Bank("1234", 1.0, 1)
+
+            // when
+            val performPathRequest = mockMvc.put(baseUrl) {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(updatedBank)
+            }
+
+            // then
+            performPathRequest
+                .andDo { print() }
+                .andExpect {
+                    status { isOK() }
+                }
+
         }
 
     }
