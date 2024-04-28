@@ -63,7 +63,7 @@ internal class BankControllerTest @Autowired constructor (
                 }
         }
     }
-    
+
     @Test
     fun `should return NOT FOUND if the account number does not exist`() {
         // given
@@ -126,7 +126,7 @@ internal class BankControllerTest @Autowired constructor (
     @Nested
     @DisplayName("PATCH/api/banks")
     @TestInstance(Lifecycle.PER_CLASS)
-    inner class PAtchExistingBank {
+    inner class PatchExistingBank {
 
         @Test
         fun `should update an existing bank` () {
@@ -154,6 +154,24 @@ internal class BankControllerTest @Autowired constructor (
                 .andExpect { content { json(objectMapper.writeValueAsString(updatedBank)) } }
         }
 
-    }
+        @Test
+        fun `should return BAD REQUEST if no bank with given account number exists`() {
+            // given
+            val invalidBank = Bank("does_not_exist", 1.0, 1)
 
+            // when
+            val performPatchRequest = mockMvc.patch(baseUrl) {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(invalidBank)
+            }
+
+            // then
+            performPatchRequest
+                .andDo { print() }
+                .andExpect { status { isBadRequest() } }
+
+        }
+
+    }
 }
+
