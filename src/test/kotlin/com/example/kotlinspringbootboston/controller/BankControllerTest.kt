@@ -11,20 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json
-import org.springframework.test.web.client.match.MockRestRequestMatchers.content
-import org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
 import org.springframework.test.web.servlet.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.springframework.web.servlet.function.RequestPredicates.contentType
-import javax.management.Query.value
 
 @SpringBootTest
 @AutoConfigureMockMvc
-internal class BankControllerTest @Autowired constructor (
-    val mockMvc: MockMvc,
-    val objectMapper: ObjectMapper
+internal class BankControllerTest @Autowired constructor(
+    val mockMvc: MockMvc, val objectMapper: ObjectMapper
 ) {
+
+    private val baseUrl = "/api/banks"
 
     @Nested
     @DisplayName("GET /api/banks")
@@ -72,7 +67,11 @@ internal class BankControllerTest @Autowired constructor (
         // when/then
         mockMvc.get("$baseUrl/$accountNumber")
             .andDo { print() }
-            .andExpect { status { isNotFound() } }
+            .andExpect {
+                status {
+                    isNotFound()
+                }
+            }
     }
 
     @Nested
@@ -92,34 +91,31 @@ internal class BankControllerTest @Autowired constructor (
             }
 
             // then
-            performPost
-                .andDo { print() }
+            performPost.andDo { print() }
                 .andExpect {
                     status { isCreated() }
                     content {
                         contentType(MediaType.APPLICATION_JSON)
                         json(objectMapper.writeValueAsString(newBank))
-                    }
-            .mockMvc.get("$baseUrl/${newBank.accountNumber}")
-                 .andExpect { content { json(objectMapper.writeValueAsString(newBank)) } }
-        }
+                    }.mockMvc.get("$baseUrl/${newBank.accountNumber}")
+                        .andExpect { content { json(objectMapper.writeValueAsString(newBank)) } }
+                }
 
-        @Test
-        fun `should return BAD REQUEST if bank with given account number already exists`() {
-            // given
-            val invalidBank = Bank("1234", 1.0, 1)
+            @Test
+            fun `should return BAD REQUEST if bank with given account number already exists`() {
+                // given
+                val invalidBank = Bank("1234", 1.0, 1)
 
 
-            // when
-            val performPost = mockMvc.post(baseUrl) {
-                contentType = MediaType.APPLICATION_JSON
-                content = objectMapper.writeValueAsString(invalidBank)
+                // when
+                val performPost = mockMvc.post(baseUrl) {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = objectMapper.writeValueAsString(invalidBank)
+                }
+
+                // then
+                performPost.andDo { print() }.andExpect { status { isBadRequest() } }
             }
-
-            // then
-            performPost
-                .andDo { print() }
-                .andExpect { status { isBadRequest() } }
         }
     }
 
@@ -129,7 +125,7 @@ internal class BankControllerTest @Autowired constructor (
     inner class PatchExistingBank {
 
         @Test
-        fun `should update an existing bank` () {
+        fun `should update an existing bank`() {
             // given
             val updatedBank = Bank("1234", 1.0, 1)
 
@@ -140,8 +136,7 @@ internal class BankControllerTest @Autowired constructor (
             }
 
             // then
-            performPathRequest
-                .andDo { print() }
+            performPathRequest.andDo { print() }
                 .andExpect {
                     status { isOK() }
                     content {
@@ -166,12 +161,44 @@ internal class BankControllerTest @Autowired constructor (
             }
 
             // then
-            performPatchRequest
-                .andDo { print() }
-                .andExpect { status { isBadRequest() } }
+            performPatchRequest.andDo { print() }.andExpect { status { isBadRequest() } }
 
         }
 
     }
+
+    @Nested
+    @DisplayName("DELETE /api/banks/{accountNumber}")
+    @TestInstance(Lifecycle.PER_CLASS)
+    inner class DeleteExistingBank {
+
+        @Test
+        fun `should delete the bank with the given account number`() {
+            // given
+            val accountNumber = 1234
+
+            // when/then
+            mockMvc.delete("$baseUrl/$accountNumber")
+                .andDo { print() }
+                .andExpect {
+                    status { isNoContent() }
+                }
+
+            mockMvc.get("$baseUrl/$accountNumber")
+                .andExpect { status { isNotFound() } }
+        }
+
+        @Test
+        fun `should return NOT FOUND if no bank with given account number exists`() {
+            // given
+            val accountNUmber = "does_not_exist"
+
+            // when
+            mockMvc.delete("$baseUrl/$invalidAccountNumber")
+                .andDo { print() }
+                .andExpect { status { isNotFound() } }
+        }
+    }
+
 }
 
