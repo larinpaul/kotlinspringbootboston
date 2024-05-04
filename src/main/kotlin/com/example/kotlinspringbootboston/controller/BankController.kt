@@ -39,5 +39,4 @@ class BankController(private val service: BankService) {
     @PatchMapping
     fun updateBank(@RequestBody bank: Bank): Bank = service.updateBank(bank)
 
-
 }
